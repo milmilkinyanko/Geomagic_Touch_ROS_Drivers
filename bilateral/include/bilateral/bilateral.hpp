@@ -123,7 +123,7 @@ private:
     }
 
 public:
-    BilateralController(BilateralController::MS ms) : m_master_or_slave(ms), m_pnh("~")
+    BilateralController(BilateralController::MS ms = BilateralController::MS::Slave) : m_master_or_slave(ms), m_pnh("~")
     {
         // get parameters
         if (!m_pnh.getParam("/topic_master", m_topic_name_master)) {
