@@ -77,7 +77,7 @@ private:
     std::array<double, 3> m_th_pi;  // prev_input
     std::array<double, 3> m_th_po;  // prev_output
 
-    std::vector<IIRFilter> position_iir_controller;
+    std::vector<IIRFilter> m_position_iir_controller;
 
     // 位置にもとづくディジタル制御器
     // tustin変換 (双一次z変換) によりIIR型フィルタとして構成している
@@ -91,7 +91,7 @@ private:
         pos_feedback_diff.at(2) = master.z - this->m_position_scale_gain.at(2) * slave.z;
         std::array<double, 3> ret;
         for (int i = 0; i < 3; i++) {
-            ret.at(i) = this->position_iir_controller.at(i).control(pos_feedback_diff.at(i));
+            ret.at(i) = this->m_position_iir_controller.at(i).control(pos_feedback_diff.at(i));
         }
         return ret;
     }
@@ -155,8 +155,8 @@ public:
         m_sub_slave = m_nh.subscribe(m_topic_name_slave + "/pose", 1, &BilateralController::slaveCallback, this);
 
         for (int i = 0; i < 3; i++) {
-            position_iir_controller.push_back(IIRFilter{1, m_joint_gain_list.at(i) * std::vector<double>{84.44, -84.29}, std::vector<double>{0.9851}});
-            // position_iir_controller.push_back(IIRFilter{1, std::vector<double>{84.44, -84.29}, std::vector<double>{0.9851}});
+            m_position_iir_controller.push_back(IIRFilter{1, m_joint_gain_list.at(i) * std::vector<double>{84.44, -84.29}, std::vector<double>{0.9851}});
+            // m_position_iir_controller.push_back(IIRFilter{1, std::vector<double>{84.44, -84.29}, std::vector<double>{0.9851}});
         }
     }
 
