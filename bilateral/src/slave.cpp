@@ -45,20 +45,19 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "bilateral_slave");
     ros::NodeHandle nh;
 
-    // // slaveのomni_stateが立ち上がるまで待つ
-    // if (!waitForMyMsg<geometry_msgs::PoseStamped>("/phantom_slave/phantom/pose", nh)) {
-    //     ROS_ERROR("DID NOT RECEIVE SLAVE TOPIC");
-    //     return EXIT_FAILURE;
-    // }
-    // // masterのomni_stateが立ち上がるまで待つ
-    // if (!waitForMyMsg<geometry_msgs::PoseStamped>("/phantom_master/phantom/pose", nh)) {
-    //     ROS_ERROR("DID NOT RECEIVE MASTER TOPIC");
-    //     return EXIT_FAILURE;
-    // }
-    //
+    // slaveのomni_stateが立ち上がるまで待つ
+    if (!waitForMyMsg<geometry_msgs::PoseStamped>("/phantom_slave/phantom/pose", nh)) {
+        ROS_ERROR("DID NOT RECEIVE SLAVE TOPIC");
+        return EXIT_FAILURE;
+    }
+    // masterのomni_stateが立ち上がるまで待つ
+    if (!waitForMyMsg<geometry_msgs::PoseStamped>("/phantom_master/phantom/pose", nh)) {
+        ROS_ERROR("DID NOT RECEIVE MASTER TOPIC");
+        return EXIT_FAILURE;
+    }
+
     ROS_INFO("Start bilateral slave node ...");
     BilateralController bilateral_controller(BilateralController::MS::Slave);
-    // bilateral_controller.hoge();
     ros::spin();
     ROS_INFO("End bilateral slave node ...");
     return EXIT_SUCCESS;

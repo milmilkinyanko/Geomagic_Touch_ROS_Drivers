@@ -37,15 +37,11 @@ public:
         this->m_prev_output.resize(N + 1);
         this->m_coeff_output.at(0) = 0.0;  // output index: 1 to N, ignore prev_output[0]
         for (int i = 0; i < N; i++) {
-            std::cerr << "piyo " << i << std::endl;
             this->m_coeff_output.at(i + 1) = coeff_output.at(i);
         }
         for (int i = 0; i < N + 1; i++) {
-            std::cerr << "hoge " << i << std::endl;
             this->m_coeff_input.at(i) = coeff_input.at(i);
-            std::cerr << "fuga " << i << std::endl;
             this->m_prev_input.at(i) = 0.0;
-            std::cerr << "guee " << i << std::endl;
             this->m_prev_output.at(i) = 0.0;
         }
     }
