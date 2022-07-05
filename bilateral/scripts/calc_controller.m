@@ -2,7 +2,7 @@
 kp = 10;    % propotional gain
 kd = 5;     % differential gain
 t = 1e-3;   % 離散化における周期 (サンプリング周期)
-omega = 30;  % 疑似微分に用いるLPFのカットオフ角周波数
+omega = 15;  % 疑似微分に用いるLPFのカットオフ角周波数
 tau = 1.0 / omega;
 Hd = tf([kd 0], [tau 1])
 Hp = tf([kp], [1])

@@ -11,7 +11,7 @@
 template <typename T>
 static bool waitForMyMsg(const std::string& topic_name, ros::NodeHandle& nh)
 {
-    boost::shared_ptr<const T> ptr = ros::topic::waitForMessage<T>(topic_name, nh, ros::Duration(1.0));
+    boost::shared_ptr<const T> ptr = ros::topic::waitForMessage<T>(topic_name, nh, ros::Duration(10));
     if (ptr == nullptr) {
         return false;
     } else {
