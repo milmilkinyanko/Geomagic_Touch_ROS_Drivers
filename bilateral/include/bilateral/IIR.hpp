@@ -22,10 +22,10 @@ private:
 
     void updateOutput(double output)
     {
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < N - 1; i++) {
             m_prev_output.at(N - i) = m_prev_output.at(N - i - 1);
         }
-        m_prev_output.at(0) = output;
+        m_prev_output.at(1) = output;
     }
 
 public:
