@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include "omni_msgs/OmniFeedback.h"
+#include "omni_msgs/OmniState.h"
 
 #include "bilateral/bilateral.hpp"
 
@@ -30,10 +31,15 @@ void BilateralController::forceControl()
     // slaveをmasterにあわせる -> ref: slave, th: master
     std::array<double, 3> tauref
         = -this->positionIIRController(master_pos, slave_pos, joint_gain)
-          - this->forceIIRController(master_pos, slave_pos);  //, ktheta);
+          - this->forceIIRController(master_pos);
+    // std::cout << "x: " << tau_est.at(0) << std::endl;
+    // std::cout << "y: " << tau_est.at(1) << std::endl;
+    // std::cout << "z: " << tau_est.at(2) << std::endl;
     force_msg.force.x = tauref.at(0);
-    force_msg.force.y = tauref.at(1);
-    force_msg.force.z = tauref.at(2);
+    force_msg.force.y = 0.0;
+    // force_msg.force.y = tauref.at(1);
+    force_msg.force.z = 0.0;
+    // force_msg.force.z = tauref.at(2);
     force_msg.position.x = 0.0;
     force_msg.position.y = 0.0;
     force_msg.position.z = 0.0;
@@ -46,13 +52,13 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
 
     // slaveのomni_stateが立ち上がるまで待つ
-    if (!waitForMyMsg<geometry_msgs::PoseStamped>("/phantom_slave/phantom/pose", nh)) {
+    if (!waitForMyMsg<omni_msgs::OmniState>("/phantom_slave/phantom/state", nh)) {
         ROS_ERROR("DID NOT RECEIVE SLAVE TOPIC");
         return EXIT_FAILURE;
     }
     // masterのomni_stateが立ち上がるまで待つ
 
-    if (!waitForMyMsg<geometry_msgs::PoseStamped>("/phantom_master/phantom/pose", nh)) {
+    if (!waitForMyMsg<omni_msgs::OmniState>("/phantom_master/phantom/state", nh)) {
         ROS_ERROR("DID NOT RECEIVE MASTER TOPIC");
         return EXIT_FAILURE;
     }

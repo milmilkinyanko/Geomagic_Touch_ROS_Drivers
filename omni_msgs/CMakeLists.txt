@@ -3,10 +3,11 @@ project(omni_msgs)
 
 find_package(catkin REQUIRED COMPONENTS roscpp rospy message_generation geometry_msgs sensor_msgs std_msgs)
 
-add_message_files(FILES 
-		OmniFeedback.msg 
-		OmniButtonEvent.msg 
+add_message_files(FILES
+		OmniFeedback.msg
+		OmniButtonEvent.msg
 		OmniState.msg
+		BilateralData.msg
 		)
 
 generate_messages(DEPENDENCIES geometry_msgs sensor_msgs std_msgs)
