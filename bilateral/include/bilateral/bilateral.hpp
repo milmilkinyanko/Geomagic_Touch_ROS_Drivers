@@ -142,11 +142,16 @@ private:
     {
         auto& dob_lpf = (master_or_slave == BilateralController::MS::Master) ? m_force_dob_lpf_master : m_force_dob_lpf_slave;
         auto& dob_motor_inv = (master_or_slave == BilateralController::MS::Master) ? m_force_dob_motor_inv_master : m_force_dob_motor_inv_slave;
+        bool is_disp = (master_or_slave == BilateralController::MS::Master) ? true : false;
 
         std::array<double, 3> ret;
         for (int i = 0; i < 3; i++) {
-            ret.at(i) = dob_lpf.at(i).control(tauref.at(i))
-                        + dob_motor_inv.at(i).control(theta.at(i));
+            double tmp_tau = dob_lpf.at(i).control(tauref.at(i));
+            double tmp_inv = dob_motor_inv.at(i).control(theta.at(i));
+            ret.at(i) = tmp_tau + tmp_inv;
+            if (i == 0 && is_disp) {
+                ROS_INFO("tau: %lf, inv: %lf, sum: %lf", tmp_tau, tmp_inv, tmp_tau + tmp_inv);
+            }
         }
         return ret;
     }
@@ -155,7 +160,7 @@ private:
     std::array<double, 3> forceIIRController(
         geometry_msgs::Point& theta)  //, std::vector<double>& k)
     {
-        return -0.1 * (forceDOB(this->m_tauref_master, this->m_joint_theta_master, BilateralController::MS::Master) - (forceDOB(this->m_tauref_slave, this->m_joint_theta_slave, BilateralController::MS::Slave)));
+        return -3 * 1e-2 * (forceDOB(this->m_tauref_master, this->m_joint_theta_master, BilateralController::MS::Master) - (forceDOB(this->m_tauref_slave, this->m_joint_theta_slave, BilateralController::MS::Slave)));
     }
 
 public:
@@ -214,7 +219,7 @@ public:
     {
         for (int i = 0; i < 3; i++) {
             m_joint_theta_master.at(i) = joint.position[i];
-            m_tauref_master.at(i) = joint.effort[i];
+            m_tauref_master.at(i) = -joint.effort[i];
         }
         m_master_pose = pose;
     }
@@ -222,7 +227,7 @@ public:
     {
         for (int i = 0; i < 3; i++) {
             m_joint_theta_slave.at(i) = joint.position[i];
-            m_tauref_slave.at(i) = joint.effort[i];
+            m_tauref_slave.at(i) = -joint.effort[i];
         }
         m_slave_pose = pose;
     }
