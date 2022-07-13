@@ -22,21 +22,15 @@ static bool waitForMyMsg(const std::string& topic_name, ros::NodeHandle& nh)
 
 void BilateralController::forceControl()
 {
-    geometry_msgs::Point master_pos = this->getMasterPose().position;
-    geometry_msgs::Point slave_pos = this->getSlavePose().position;
-    std::vector<double> joint_gain = this->getPosGains();
     omni_msgs::OmniFeedback force_msg;
-    // phantomの場合、forceをかける方向はencの向きと逆 -> joint_gainはマイナス
     // A0Bにおいては各軸について符号あわせる
-    // slaveをmasterにあわせる -> ref: master, th: slave
     std::array<double, 3> tauref
-        = this->positionIIRController(master_pos, slave_pos, joint_gain)
-          + this->forceIIRController(slave_pos);  //master_pos, slave_pos);  //, ktheta);
+        = this->positionIIRController() - this->forceIIRController();
     force_msg.force.x = tauref.at(0);
-    force_msg.force.y = 0.0;
     // force_msg.force.y = tauref.at(1);
-    force_msg.force.z = 0.0;
     // force_msg.force.z = tauref.at(2);
+    force_msg.force.y = 0.0;
+    force_msg.force.z = 0.0;
     // for (int i = 0; i < 3; i++) {
     //     this->m_tauref.at(i) = tauref.at(i);
     //     ROS_INFO("%i: %lf", i, tauref.at(i));

@@ -20,7 +20,7 @@
       <param name="units" value="$(arg units)"/>
     </node>
     <node name="master" pkg="bilateral" type="bilateral_master" output="screen">
-      <rosparam>joint_gain_list: [-1.0,-1.0,-1.0]</rosparam>
+      <rosparam>joint_gain_list: [100.0,50.0,10.0]</rosparam>
     </node>
   </group>
 
@@ -33,7 +33,7 @@
       <param name="units" value="$(arg units)"/>
     </node>
     <node name="slave" pkg="bilateral" type="bilateral_slave" output="screen">
-      <rosparam>joint_gain_list: [-1.0,-1.0,-1.0]</rosparam>
+      <rosparam>joint_gain_list: [100.0,50.0,10.0]</rosparam>
     </node>
   </group>
 

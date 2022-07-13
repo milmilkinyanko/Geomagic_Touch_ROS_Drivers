@@ -5,7 +5,7 @@
 #include <string>
 
 #include <ros/ros.h>
-#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose.h>
 #include "omni_msgs/OmniFeedback.h"
 #include "omni_msgs/BilateralData.h"
 #include "IIR.hpp"
@@ -123,14 +123,13 @@ private:
 
     // 位置にもとづくディジタル制御器
     // tustin変換 (双一次z変換) によりIIR型フィルタとして構成している
-    std::array<double, 3> positionIIRController(
-        geometry_msgs::Point& master, geometry_msgs::Point& slave, std::vector<double>& joint_gain)
+    std::array<double, 3> positionIIRController()
     {
         std::array<double, 3> pos_feedback_diff;  // theta_input_diff
         // x, y, zでしかaccessできないので仕方なく...
-        pos_feedback_diff.at(0) = master.x - this->m_position_scale_gain.at(0) * slave.x;
-        pos_feedback_diff.at(1) = master.y - this->m_position_scale_gain.at(1) * slave.y;
-        pos_feedback_diff.at(2) = master.z - this->m_position_scale_gain.at(2) * slave.z;
+        for (int i = 0; i < 3; i++) {
+            pos_feedback_diff.at(i) = this->m_joint_theta_master.at(i) - this->m_position_scale_gain.at(i) * this->m_joint_theta_slave.at(i);
+        }
         std::array<double, 3> ret;
         for (int i = 0; i < 3; i++) {
             ret.at(i) = this->m_position_iir_controller.at(i).control(pos_feedback_diff.at(i));
@@ -148,7 +147,7 @@ private:
         for (int i = 0; i < 3; i++) {
             double tmp_tau = dob_lpf.at(i).control(tauref.at(i));
             double tmp_inv = dob_motor_inv.at(i).control(theta.at(i));
-            ret.at(i) = tmp_tau + tmp_inv;
+            ret.at(i) = tmp_tau - tmp_inv;
             if (i == 0 && is_disp) {
                 ROS_INFO("tau: %lf, inv: %lf, sum: %lf", tmp_tau, tmp_inv, tmp_tau + tmp_inv);
             }
@@ -157,10 +156,12 @@ private:
     }
 
     // TODO: 今はとりあえず定数だが、モータパラメータを使ってDOB、RFOBを構成する
-    std::array<double, 3> forceIIRController(
-        geometry_msgs::Point& theta)  //, std::vector<double>& k)
+    std::array<double, 3> forceIIRController()
     {
-        return -3 * 1e-2 * (forceDOB(this->m_tauref_master, this->m_joint_theta_master, BilateralController::MS::Master) - (forceDOB(this->m_tauref_slave, this->m_joint_theta_slave, BilateralController::MS::Slave)));
+        std::array<double, 3> master_reaction_force = forceDOB(this->m_tauref_master, this->m_joint_theta_master, BilateralController::MS::Master);
+        std::array<double, 3> slave_reaction_force = forceDOB(this->m_tauref_slave, this->m_joint_theta_slave, BilateralController::MS::Slave);
+        std::array<double, 3> ret = 0.9 * (master_reaction_force + slave_reaction_force);
+        return ret;
     }
 
 public:
@@ -219,7 +220,7 @@ public:
     {
         for (int i = 0; i < 3; i++) {
             m_joint_theta_master.at(i) = joint.position[i];
-            m_tauref_master.at(i) = -joint.effort[i];
+            m_tauref_master.at(i) = joint.effort[i];
         }
         m_master_pose = pose;
     }
@@ -227,23 +228,20 @@ public:
     {
         for (int i = 0; i < 3; i++) {
             m_joint_theta_slave.at(i) = joint.position[i];
-            m_tauref_slave.at(i) = -joint.effort[i];
+            m_tauref_slave.at(i) = joint.effort[i];
         }
         m_slave_pose = pose;
     }
-    geometry_msgs::Pose& getMasterPose() { return m_master_pose; }
-    geometry_msgs::Pose& getSlavePose() { return m_slave_pose; }
-    std::vector<double>& getPosGains() { return m_joint_gain_list; }
     void forceControl();
     void masterCallback(const omni_msgs::BilateralData::ConstPtr& master_data)
     {
-        this->updateMasterState(master_data->pose.pose, master_data->joint_state);
+        this->updateMasterState(master_data->pose, master_data->joint_state);
         // 1kHzにするためにslaveからsubしたときのみcontrol
         // this->forceControl();
     }
     void slaveCallback(const omni_msgs::BilateralData::ConstPtr& slave_data)
     {
-        this->updateSlaveState(slave_data->pose.pose, slave_data->joint_state);
+        this->updateSlaveState(slave_data->pose, slave_data->joint_state);
         this->forceControl();
     }
 

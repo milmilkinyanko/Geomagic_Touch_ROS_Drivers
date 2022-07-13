@@ -194,11 +194,11 @@ public:
         data_msg.joint_state.position.resize(6);
         data_msg.joint_state.effort.resize(3);
         data_msg.joint_state.name[0] = "waist";
-        data_msg.joint_state.position[0] = -state->thetas[1];
+        data_msg.joint_state.position[0] = state->joints[0];
         data_msg.joint_state.name[1] = "shoulder";
-        data_msg.joint_state.position[1] = state->thetas[2];
+        data_msg.joint_state.position[1] = state->joints[1];
         data_msg.joint_state.name[2] = "elbow";
-        data_msg.joint_state.position[2] = state->thetas[3];
+        data_msg.joint_state.position[2] = state->joints[2];
         data_msg.joint_state.name[3] = "yaw";
         data_msg.joint_state.position[3] = -state->thetas[4] + M_PI;
         data_msg.joint_state.name[4] = "pitch";
@@ -206,18 +206,16 @@ public:
         data_msg.joint_state.name[5] = "roll";
         data_msg.joint_state.position[5] = -state->thetas[6] - M_PI;
         data_msg.joint_state.effort[0] = state->force[0];
-        data_msg.joint_state.effort[1] = state->force[2];
-        data_msg.joint_state.effort[2] = -state->force[1];
+        data_msg.joint_state.effort[1] = state->force[1];
+        data_msg.joint_state.effort[2] = state->force[2];
         // joint_publisher.publish(joint_state);
 
-        // Build the pose msg
+        // Build the pose mst
         // geometry_msgs::PoseStamped pose_msg;
-        data_msg.pose.header = state_msg.header;
-        data_msg.pose.header.frame_id = ref_frame;
-        data_msg.pose.pose = state_msg.pose;
-        data_msg.pose.pose.position.x /= 1000.0;
-        data_msg.pose.pose.position.y /= 1000.0;
-        data_msg.pose.pose.position.z /= 1000.0;
+        data_msg.pose = state_msg.pose;
+        data_msg.pose.position.x /= 1000.0;
+        data_msg.pose.position.y /= 1000.0;
+        data_msg.pose.position.z /= 1000.0;
         // pose_publisher.publish(pose_msg);
 
         // data_msg.header = state_msg.header;
@@ -296,10 +294,14 @@ HDCallbackCode HDCALLBACK omni_state_callback(void* pUserData)
     //~ }
     hduVector3Dd feedback;
     // Notice that we are changing Y <---> Z and inverting the Z-force_feedback
-    feedback[0] = omni_state->force[0];
-    feedback[1] = omni_state->force[2];
-    feedback[2] = -omni_state->force[1];
-    hdSetDoublev(HD_CURRENT_FORCE, feedback);
+    //    feedback[0] = omni_state->force[0];
+    //    feedback[1] = omni_state->force[2];
+    //    feedback[2] = -omni_state->force[1];
+    //hdSetDoublev(HD_CURRENT_FORCE, feedback);
+    feedback[0] = -omni_state->force[0];
+    feedback[1] = -omni_state->force[1];
+    feedback[2] = -omni_state->force[2];
+    hdSetDoublev(HD_CURRENT_JOINT_TORQUE, feedback);
 
     //Get buttons
     int nButtons = 0;
