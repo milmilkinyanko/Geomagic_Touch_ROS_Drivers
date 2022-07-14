@@ -7,6 +7,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include "omni_msgs/OmniFeedback.h"
+#include "IIR.hpp"
 
 template <typename T, std::size_t N>
 std::array<T, N> operator+(const std::array<T, N>& a, const std::array<T, N>& b) noexcept
@@ -26,11 +27,13 @@ std::array<T, N> operator-(const std::array<T, N>& a, const std::array<T, N>& b)
     }
     return ret;
 }
-template <typename T, std::size_t N>
-std::array<T, N> operator*(const double a, const std::array<T, N>& b) noexcept
+template <typename T>
+std::vector<T> operator*(const double a, const std::vector<T>& b) noexcept
 {
-    std::array<T, N> ret;
-    for (std::size_t i = 0; i < N; i++) {
+    std::vector<T> ret;
+    int N = b.size();
+    ret.resize(N);
+    for (int i = 0; i < N; i++) {
         ret.at(i) = a * b.at(i);
     }
     return ret;
@@ -74,14 +77,13 @@ private:
     std::array<double, 3> m_th_pi;  // prev_input
     std::array<double, 3> m_th_po;  // prev_output
 
+    std::vector<IIRFilter> m_position_iir_controller;
+
     // 位置にもとづくディジタル制御器
     // tustin変換 (双一次z変換) によりIIR型フィルタとして構成している
     std::array<double, 3> positionIIRController(
         geometry_msgs::Point& master, geometry_msgs::Point& slave, std::vector<double>& joint_gain)
     {
-        const double a0 = 157.8;
-        const double a1 = -157.7;
-        const double b1 = 0.9704;
         std::array<double, 3> pos_feedback_diff;  // theta_input_diff
         // x, y, zでしかaccessできないので仕方なく...
         pos_feedback_diff.at(0) = master.x - this->m_position_scale_gain.at(0) * slave.x;
@@ -89,11 +91,7 @@ private:
         pos_feedback_diff.at(2) = master.z - this->m_position_scale_gain.at(2) * slave.z;
         std::array<double, 3> ret;
         for (int i = 0; i < 3; i++) {
-            ret.at(i) = joint_gain.at(i) * (a0 * pos_feedback_diff.at(i) + a1 * m_th_pi.at(i))  // m_th_pi: prev_input
-                        + b1 * m_th_po.at(i);                                                   //m_th_po: prev_output
-            // update variables
-            m_th_po.at(i) = ret.at(i);
-            m_th_pi.at(i) = pos_feedback_diff.at(i);
+            ret.at(i) = this->m_position_iir_controller.at(i).control(pos_feedback_diff.at(i));
         }
         return ret;
     }
@@ -106,13 +104,13 @@ private:
         constexpr double theta_threshold = 0.05;
         constexpr int time_threshold_ms = 100;
         const double pos_feedback_diff = master.x - this->m_position_scale_gain.at(0) * slave.x;
-        ROS_INFO("pos_feedback_diff: %lf", pos_feedback_diff);
+        // ROS_INFO("pos_feedback_diff: %lf", pos_feedback_diff);
         if (std::abs(pos_feedback_diff) > theta_threshold) {
             cnt++;
         } else {
             cnt = 0;
         }
-        ROS_INFO("cnt: %d", cnt);
+        // ROS_INFO("cnt: %d", cnt);
 
         const double f = 1.;
         if (cnt > time_threshold_ms) {
@@ -155,6 +153,11 @@ public:
         }
         m_sub_master = m_nh.subscribe(m_topic_name_master + "/pose", 1, &BilateralController::masterCallback, this);
         m_sub_slave = m_nh.subscribe(m_topic_name_slave + "/pose", 1, &BilateralController::slaveCallback, this);
+
+        for (int i = 0; i < 3; i++) {
+            m_position_iir_controller.push_back(IIRFilter{1, m_joint_gain_list.at(i) * std::vector<double>{84.44, -84.29}, std::vector<double>{0.9851}});
+            // m_position_iir_controller.push_back(IIRFilter{1, std::vector<double>{84.44, -84.29}, std::vector<double>{0.9851}});
+        }
     }
 
     void updateMasterPose(const geometry_msgs::Pose& pose)
@@ -180,4 +183,6 @@ public:
         this->updateSlavePose(slave_pose->pose);
         this->forceControl();
     }
+
+    // void hoge() { this->nosition_iir_controller.hoge(); }
 };
