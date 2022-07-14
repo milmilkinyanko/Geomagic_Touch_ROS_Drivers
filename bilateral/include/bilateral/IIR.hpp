@@ -6,7 +6,7 @@
 class IIRFilter
 {
 private:
-    int N;
+    int N;  // フィルタの次数
     std::vector<double> m_coeff_input;
     std::vector<double> m_prev_input;
     std::vector<double> m_coeff_output;
