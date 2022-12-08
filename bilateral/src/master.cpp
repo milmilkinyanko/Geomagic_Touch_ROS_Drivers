@@ -26,8 +26,9 @@ void BilateralController::forceControl()
     // phantomの場合、forceをかける方向はencの向きと逆 -> joint_gainはマイナス
     // A0Bにおいては各軸について符号あわせる
     // slaveをmasterにあわせる -> ref: slave, th: master
+    static const double N = 460.0;
     std::array<double, 3> tauref
-        = -this->positionIIRController() - this->forceIIRController();
+        = -this->positionIIRController() - N * this->forceIIRController();
     // std::cout << "x: " << tau_est.at(0) << std::endl;
     // std::cout << "y: " << tau_est.at(1) << std::endl;
     // std::cout << "z: " << tau_est.at(2) << std::endl;
