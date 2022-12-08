@@ -48,20 +48,20 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
 
     // slaveのomni_stateが立ち上がるまで待つ
-    if (!waitForMyMsg<omni_msgs::BilateralData>("/phantom_slave/phantom/data", nh)) {
-        ROS_ERROR("DID NOT RECEIVE SLAVE TOPIC");
-        return EXIT_FAILURE;
-    }
+    // if (!waitForMyMsg<omni_msgs::BilateralData>("/phantom_slave/phantom/data", nh)) {
+    //     ROS_ERROR("DID NOT RECEIVE SLAVE TOPIC");
+    //     return EXIT_FAILURE;
+    // }
     // masterのomni_stateが立ち上がるまで待つ
 
-    if (!waitForMyMsg<omni_msgs::BilateralData>("/phantom_master/phantom/data", nh)) {
-        ROS_ERROR("DID NOT RECEIVE MASTER TOPIC");
-        return EXIT_FAILURE;
-    }
+    // if (!waitForMyMsg<omni_msgs::BilateralData>("/phantom_master/phantom/data", nh)) {
+    //     ROS_ERROR("DID NOT RECEIVE MASTER TOPIC");
+    //     return EXIT_FAILURE;
+    // }
 
-    ROS_INFO("Start bilateral master node ...");
+    ROS_WARN("Start bilateral master node ...");
     BilateralController bilateral_controller(BilateralController::MS::Master);
     ros::spin();
-    ROS_INFO("End bilateral master node ...");
+    ROS_WARN("End bilateral master node ...");
     return EXIT_SUCCESS;
 }
