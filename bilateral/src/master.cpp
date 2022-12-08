@@ -32,10 +32,10 @@ void BilateralController::forceControl()
     // std::cout << "y: " << tau_est.at(1) << std::endl;
     // std::cout << "z: " << tau_est.at(2) << std::endl;
     force_msg.force.x = tauref.at(0);
-    // force_msg.force.y = tauref.at(1);
-    // force_msg.force.z = tauref.at(2);
-    force_msg.force.y = 0.0;
-    force_msg.force.z = 0.0;
+    force_msg.force.y = tauref.at(1);
+    force_msg.force.z = tauref.at(2);
+    // force_msg.force.y = 0.0;
+    // force_msg.force.z = 0.0;
     force_msg.position.x = 0.0;
     force_msg.position.y = 0.0;
     force_msg.position.z = 0.0;
