@@ -151,7 +151,7 @@ private:
             double tmp_inv = dob_motor_inv.at(i).control(theta.at(i));
             ret.at(i) = tmp_tau - tmp_inv;
             if (i == 0 && is_disp) {
-                ROS_INFO("tau: %lf, inv: %lf, sum: %lf", tmp_tau, tmp_inv, tmp_tau + tmp_inv);
+                ROS_WARN("tau: %lf, inv: %lf, sum: %lf", tmp_tau, tmp_inv, tmp_tau + tmp_inv);
             }
         }
         return ret;
