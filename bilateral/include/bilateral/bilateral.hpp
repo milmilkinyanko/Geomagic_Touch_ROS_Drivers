@@ -28,9 +28,9 @@ static constexpr double b1 = 0.9704;
 }  // namespace LPF
 namespace MotorInv
 {
-static constexpr std::array<double, 3> a0 = {140.7, 34.4, 2.083};
-static constexpr std::array<double, 3> a1 = {-281.4, -68.81, -4.166};
-static constexpr std::array<double, 3> a2 = {140.7, 34.4, 2.083};
+static constexpr std::array<double, 3> a0 = {1e-3 * 140.7, 1e-3 * 34.4, 1e-3 * 2.083};
+static constexpr std::array<double, 3> a1 = {1e-3 * -281.4, 1e-3 * -68.81, 1e-3 * -4.166};
+static constexpr std::array<double, 3> a2 = {1e-3 * 140.7, 1e-3 * 34.4, 1e-3 * 2.083};
 static constexpr double b1 = 1.958;
 static constexpr double b2 = -0.9585;
 }  // namespace MotorInv
