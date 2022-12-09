@@ -16,25 +16,26 @@ static constexpr double a0 = 84.44;
 static constexpr double a1 = -84.29;
 static constexpr double b1 = 0.9851;
 }  // namespace PIDParams
+namespace Slave
+{
 namespace DOBParams
 {
 namespace LPF
 {
-static constexpr double a0 = 2.203e-4;
-static constexpr double a1 = 4.406e-4;
-static constexpr double a2 = 2.203e-4;
-static constexpr double b1 = 1.958;
-static constexpr double b2 = -0.9585;
+static constexpr double a0 = 0.01478;
+static constexpr double a1 = -0.01478;
+static constexpr double b1 = 0.9704;
 }  // namespace LPF
 namespace MotorInv
 {
-static constexpr double a0 = 2644;
-static constexpr double a1 = -5287;
-static constexpr double a2 = 2643;
+static constexpr std::array<double, 3> a0 = {1e-3 * 140.7, 1e-3 * 34.4, 1e-3 * 2.083};
+static constexpr std::array<double, 3> a1 = {1e-3 * -281.4, 1e-3 * -68.81, 1e-3 * -4.166};
+static constexpr std::array<double, 3> a2 = {1e-3 * 140.7, 1e-3 * 34.4, 1e-3 * 2.083};
 static constexpr double b1 = 1.958;
 static constexpr double b2 = -0.9585;
 }  // namespace MotorInv
 }  // namespace DOBParams
+}  // namespace Slave
 
 template <typename T, std::size_t N>
 std::array<T, N> operator+(const std::array<T, N>& a, const std::array<T, N>& b) noexcept
@@ -158,9 +159,9 @@ private:
     // TODO: 今はとりあえず定数だが、モータパラメータを使ってDOB、RFOBを構成する
     std::array<double, 3> forceIIRController()
     {
-        std::array<double, 3> master_reaction_force = forceDOB(this->m_tauref_master, this->m_joint_theta_master, BilateralController::MS::Master);
+        // std::array<double, 3> master_reaction_force = forceDOB(this->m_tauref_master, this->m_joint_theta_master, BilateralController::MS::Master);
         std::array<double, 3> slave_reaction_force = forceDOB(this->m_tauref_slave, this->m_joint_theta_slave, BilateralController::MS::Slave);
-        std::array<double, 3> ret = 0.9 * (master_reaction_force + slave_reaction_force);
+        std::array<double, 3> ret = 0.9 * (slave_reaction_force);
         return ret;
     }
 
@@ -204,14 +205,12 @@ public:
                 m_position_iir_controller.push_back(IIRFilter{1, m_joint_gain_list.at(i) * std::vector<double>{a0, a1}, std::vector<double>{b1}});
             }
             {
-                using namespace DOBParams::LPF;
-                m_force_dob_lpf_master.push_back(IIRFilter{2, std::vector<double>{a0, a1, a2}, std::vector<double>{b1, b2}});
-                m_force_dob_lpf_slave.push_back(IIRFilter{2, std::vector<double>{a0, a1, a2}, std::vector<double>{b1, b2}});
+                using namespace Slave::DOBParams::LPF;
+                m_force_dob_lpf_slave.push_back(IIRFilter{1, std::vector<double>{a0, a1}, std::vector<double>{b1}});
             }
             {
-                using namespace DOBParams::MotorInv;
-                m_force_dob_motor_inv_master.push_back(IIRFilter{2, std::vector<double>{a0, a1, a2}, std::vector<double>{b1, b2}});
-                m_force_dob_motor_inv_slave.push_back(IIRFilter{2, std::vector<double>{a0, a1, a2}, std::vector<double>{b1, b2}});
+                using namespace Slave::DOBParams::MotorInv;
+                m_force_dob_motor_inv_slave.push_back(IIRFilter{2, std::vector<double>{a0.at(i), a1.at(i), a2.at(i)}, std::vector<double>{b1, b2}});
             }
         }
     }
@@ -224,6 +223,7 @@ public:
         }
         m_master_pose = pose;
     }
+
     void updateSlaveState(const geometry_msgs::Pose& pose, const sensor_msgs::JointState& joint)
     {
         for (int i = 0; i < 3; i++) {
