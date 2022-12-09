@@ -98,6 +98,7 @@ private:
     std::string m_topic_name_master;
     std::string m_topic_name_slave;
     std::vector<double> m_joint_gain_list;
+    std::vector<double> m_force_gain_list;
     std::vector<double> m_position_scale_gain;
     std::vector<double> m_force_scale_gain;
     BilateralController::MS m_master_or_slave;
@@ -181,6 +182,10 @@ public:
             ROS_FATAL("'joint_gain_list' is not set");
         }
         ROS_INFO("joint_gain_list: [%lf, %lf, %lf]", m_joint_gain_list.at(0), m_joint_gain_list.at(1), m_joint_gain_list.at(2));
+        if (!m_pnh.getParam("force_gain_list", m_force_gain_list)) {
+            ROS_FATAL("'force_gain_list' is not set");
+        }
+        ROS_INFO("force_gain_list: [%lf, %lf, %lf]", m_force_gain_list.at(0), m_force_gain_list.at(1), m_force_gain_list.at(2));
         if (!m_pnh.getParam("/position_scale_gain", m_position_scale_gain)) {
             ROS_FATAL("'position_scale_gain' is not set");
         }
@@ -206,11 +211,11 @@ public:
             }
             {
                 using namespace Slave::DOBParams::LPF;
-                m_force_dob_lpf_slave.push_back(IIRFilter{1, std::vector<double>{a0, a1}, std::vector<double>{b1}});
+                m_force_dob_lpf_slave.push_back(IIRFilter{1, m_force_gain_list.at(i) * std::vector<double>{a0, a1}, std::vector<double>{b1}});
             }
             {
                 using namespace Slave::DOBParams::MotorInv;
-                m_force_dob_motor_inv_slave.push_back(IIRFilter{2, std::vector<double>{a0.at(i), a1.at(i), a2.at(i)}, std::vector<double>{b1, b2}});
+                m_force_dob_motor_inv_slave.push_back(IIRFilter{2, m_force_gain_list.at(i) * std::vector<double>{a0.at(i), a1.at(i), a2.at(i)}, std::vector<double>{b1, b2}});
             }
         }
     }
