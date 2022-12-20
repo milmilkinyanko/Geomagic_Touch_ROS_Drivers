@@ -35,6 +35,12 @@ static constexpr double b1 = 1.958;
 static constexpr double b2 = -0.9585;
 }  // namespace MotorInv
 }  // namespace DOBParams
+namespace RFOBParams
+{
+static constexpr double a0 = 14.89;
+static constexpr double a1 = -14.89;
+static constexpr double b1 = 0.9851;
+}  // namespace RFOBParams
 }  // namespace Slave
 
 template <typename T, std::size_t N>
@@ -120,8 +126,10 @@ private:
     std::vector<IIRFilter> m_position_iir_controller;
     std::vector<IIRFilter> m_force_dob_lpf_master;
     std::vector<IIRFilter> m_force_dob_motor_inv_master;
+    std::vector<IIRFilter> m_force_rfob_master;
     std::vector<IIRFilter> m_force_dob_lpf_slave;
     std::vector<IIRFilter> m_force_dob_motor_inv_slave;
+    std::vector<IIRFilter> m_force_rfob_slave;
 
     // 位置にもとづくディジタル制御器
     // tustin変換 (双一次z変換) によりIIR型フィルタとして構成している
@@ -143,15 +151,20 @@ private:
     {
         auto& dob_lpf = (master_or_slave == BilateralController::MS::Master) ? m_force_dob_lpf_master : m_force_dob_lpf_slave;
         auto& dob_motor_inv = (master_or_slave == BilateralController::MS::Master) ? m_force_dob_motor_inv_master : m_force_dob_motor_inv_slave;
-        bool is_disp = (master_or_slave == BilateralController::MS::Master) ? true : false;
+        auto& rfob = (master_or_slave == BilateralController::MS::Master) ? m_force_rfob_master : m_force_rfob_slave;
 
         std::array<double, 3> ret;
+        std::array<double, 3> c = {1, 0, 0};
+        std::array<double, 3> fc = {1, 0, 0};
+
         for (int i = 0; i < 3; i++) {
             double tmp_tau = dob_lpf.at(i).control(tauref.at(i));
             double tmp_inv = dob_motor_inv.at(i).control(theta.at(i));
-            ret.at(i) = tmp_tau - tmp_inv;
-            if (i == 0 && is_disp) {
-                ROS_WARN("tau: %lf, inv: %lf, sum: %lf", tmp_tau, tmp_inv, tmp_tau + tmp_inv);
+            double tmp_omega = rfob.at(i).control(theta.at(i));
+            double tmp_rfob = tmp_omega > 0 ? c.at(i) * tmp_omega + fc.at(i) : c.at(i) * tmp_omega - fc.at(i);
+            ret.at(i) = tmp_tau - tmp_inv - tmp_rfob;
+            if (i == 0) {
+                ROS_INFO("tau: %lf, inv: %lf, omega: %lf, rfob: %lf, sum: %lf", tmp_tau, tmp_inv, tmp_omega, tmp_rfob, tmp_tau - tmp_inv - tmp_rfob);
             }
         }
         return ret;
@@ -216,6 +229,10 @@ public:
             {
                 using namespace Slave::DOBParams::MotorInv;
                 m_force_dob_motor_inv_slave.push_back(IIRFilter{2, m_force_gain_list.at(i) * std::vector<double>{a0.at(i), a1.at(i), a2.at(i)}, std::vector<double>{b1, b2}});
+            }
+            {
+                using namespace Slave::RFOBParams;
+                m_force_rfob_slave.push_back(IIRFilter{1, std::vector<double>{a0, a1}, std::vector<double>{b1}});
             }
         }
     }
