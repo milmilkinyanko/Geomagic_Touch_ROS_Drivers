@@ -248,7 +248,7 @@ public:
             }
             {
                 using namespace Slave::RFOBParams;
-                m_force_rfob_slave.push_back(IIRFilter{1, std::vector<double>{a0, a1}, std::vector<double>{b1}});
+                m_force_rfob_slave.push_back(IIRFilter{1, m_force_gain_list.at(i) * std::vector<double>{a0, a1}, std::vector<double>{b1}});
             }
         }
     }
