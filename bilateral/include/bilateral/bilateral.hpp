@@ -107,6 +107,8 @@ private:
     std::vector<double> m_force_gain_list;
     std::vector<double> m_position_scale_gain;
     std::vector<double> m_force_scale_gain;
+    std::vector<double> m_rfob_c;
+    std::vector<double> m_rfob_fc;
     BilateralController::MS m_master_or_slave;
 
     ros::NodeHandle m_nh;
@@ -154,14 +156,20 @@ private:
         auto& rfob = (master_or_slave == BilateralController::MS::Master) ? m_force_rfob_master : m_force_rfob_slave;
 
         std::array<double, 3> ret;
-        std::array<double, 3> c = {1, 0, 0};
-        std::array<double, 3> fc = {1, 0, 0};
+        double eps = 0.01;
 
         for (int i = 0; i < 3; i++) {
             double tmp_tau = dob_lpf.at(i).control(tauref.at(i));
             double tmp_inv = dob_motor_inv.at(i).control(theta.at(i));
             double tmp_omega = rfob.at(i).control(theta.at(i));
-            double tmp_rfob = tmp_omega > 0 ? c.at(i) * tmp_omega + fc.at(i) : c.at(i) * tmp_omega - fc.at(i);
+            double tmp_rfob;
+            if (abs(tmp_omega) < eps) {
+                tmp_rfob = 0;
+            } else if (tmp_omega > 0) {
+                tmp_rfob = m_rfob_c.at(i) * tmp_omega + m_rfob_fc.at(i);
+            } else {
+                tmp_rfob = m_rfob_c.at(i) * tmp_omega - m_rfob_fc.at(i);
+            }
             ret.at(i) = tmp_tau - tmp_inv - tmp_rfob;
             if (i == 0) {
                 ROS_INFO("tau: %lf, inv: %lf, omega: %lf, rfob: %lf, sum: %lf", tmp_tau, tmp_inv, tmp_omega, tmp_rfob, tmp_tau - tmp_inv - tmp_rfob);
@@ -207,6 +215,14 @@ public:
             ROS_FATAL("'force_scale_gain' is not set");
         }
         ROS_INFO("force_scale_gain: [%lf, %lf, %lf]", m_force_scale_gain.at(0), m_force_scale_gain.at(1), m_force_scale_gain.at(2));
+        if (!m_pnh.getParam("rfob_c", m_rfob_c)) {
+            ROS_FATAL("'rfob_c' is not set");
+        }
+        ROS_INFO("rfob_c: [%lf, %lf, %lf]", m_rfob_c.at(0), m_rfob_c.at(1), m_rfob_c.at(2));
+        if (!m_pnh.getParam("rfob_fc", m_rfob_fc)) {
+            ROS_FATAL("'rfob_fc' is not set");
+        }
+        ROS_INFO("rfob_fc: [%lf, %lf, %lf]", m_rfob_fc.at(0), m_rfob_fc.at(1), m_rfob_fc.at(2));
 
         // set publisher/subscriber
         if (m_master_or_slave == BilateralController::MS::Master) {
