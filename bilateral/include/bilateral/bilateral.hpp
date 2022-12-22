@@ -22,17 +22,17 @@ namespace DOBParams
 {
 namespace LPF
 {
-static constexpr double a0 = 0.01478;
-static constexpr double a1 = -0.01478;
-static constexpr double b1 = 0.9704;
+static constexpr double a0 = 0.000153;
+static constexpr double a1 = -0.0001533;
+static constexpr double b1 = 0.9851;
 }  // namespace LPF
 namespace MotorInv
 {
-static constexpr std::array<double, 3> a0 = {1e-3 * 140.7, 1e-3 * 34.4, 1e-3 * 2.083};
-static constexpr std::array<double, 3> a1 = {1e-3 * -281.4, 1e-3 * -68.81, 1e-3 * -4.166};
-static constexpr std::array<double, 3> a2 = {1e-3 * 140.7, 1e-3 * 34.4, 1e-3 * 2.083};
-static constexpr double b1 = 1.958;
-static constexpr double b2 = -0.9585;
+static constexpr std::array<double, 3> a0 = {46.99, 8.693, 0.5263};
+static constexpr std::array<double, 3> a1 = {-93.97, -17.39, -1.053};
+static constexpr std::array<double, 3> a2 = {46.99, 8.693, 0.5263};
+static constexpr double b1 = 1.979;
+static constexpr double b2 = -0.9579;
 }  // namespace MotorInv
 }  // namespace DOBParams
 namespace RFOBParams
