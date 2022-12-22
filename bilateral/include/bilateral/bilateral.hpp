@@ -32,7 +32,7 @@ static constexpr std::array<double, 3> a0 = {0.04699, 0.008693, 0.0005263};
 static constexpr std::array<double, 3> a1 = {-0.09397, -0.01739, -0.001053};
 static constexpr std::array<double, 3> a2 = {0.04699, 0.008693, 0.0005263};
 static constexpr double b1 = 1.979;
-static constexpr double b2 = -0.9579;
+static constexpr double b2 = -0.979;
 }  // namespace MotorInv
 }  // namespace DOBParams
 namespace RFOBParams
