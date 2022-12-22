@@ -164,7 +164,7 @@ private:
             double tmp_omega = rfob.at(i).control(theta.at(i));
             double tmp_rfob;
             if (abs(tmp_omega) < eps) {
-                tmp_rfob = 0;
+                tmp_rfob = m_rfob_c.at(i) * tmp_omega;
             } else if (tmp_omega > 0) {
                 tmp_rfob = m_rfob_c.at(i) * tmp_omega + m_rfob_fc.at(i);
             } else {
