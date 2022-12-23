@@ -22,8 +22,8 @@ namespace DOBParams
 {
 namespace LPF
 {
-static constexpr double a0 = 0.3044;
-static constexpr double a1 = 0.3044;
+static constexpr double a0 = 0.0003044;
+static constexpr double a1 = 0.0003044;
 static constexpr double b1 = 0.9704;
 }  // namespace LPF
 namespace MotorInv
