@@ -12,9 +12,9 @@
 
 namespace PIDParams
 {
-static constexpr double a0 = 84.44;
-static constexpr double a1 = -84.29;
-static constexpr double b1 = 0.9851;
+static constexpr double a0 = 157.8;
+static constexpr double a1 = -157.5;
+static constexpr double b1 = 0.9704;
 }  // namespace PIDParams
 namespace Slave
 {
@@ -22,24 +22,24 @@ namespace DOBParams
 {
 namespace LPF
 {
-static constexpr double a0 = 0.1533;
-static constexpr double a1 = -0.1533;
-static constexpr double b1 = 0.9851;
+static constexpr double a0 = 0.3044;
+static constexpr double a1 = 0.3044;
+static constexpr double b1 = 0.9704;
 }  // namespace LPF
 namespace MotorInv
 {
-static constexpr std::array<double, 3> a0 = {0.04699, 0.008693, 0.0005263};
-static constexpr std::array<double, 3> a1 = {-0.09397, -0.01739, -0.001053};
-static constexpr std::array<double, 3> a2 = {0.04699, 0.008693, 0.0005263};
-static constexpr double b1 = 1.979;
-static constexpr double b2 = -0.979;
+static constexpr std::array<double, 3> a0 = {3.831, 0, 0};
+static constexpr std::array<double, 3> a1 = {-7.662, 0, 0};
+static constexpr std::array<double, 3> a2 = {3.831, 0, 0};
+static constexpr double b1 = 1.958;
+static constexpr double b2 = -0.9585;
 }  // namespace MotorInv
 }  // namespace DOBParams
 namespace RFOBParams
 {
-static constexpr double a0 = 14.89;
-static constexpr double a1 = -14.89;
-static constexpr double b1 = 0.9851;
+static constexpr double a0 = 29.56;
+static constexpr double a1 = -29.56;
+static constexpr double b1 = 0.9704;
 }  // namespace RFOBParams
 }  // namespace Slave
 
